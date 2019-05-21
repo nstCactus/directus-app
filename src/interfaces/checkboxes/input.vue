@@ -70,12 +70,10 @@ export default {
         selection = this.value;
       }
 
-      // If the wrapping option is activated, the first and last item will be an
-      // empty string ( ",rijk," will split to ["", "rijk", ""]. This will remove those empty strings
-      // if (this.options.wrap && selection.length > 2) {
-      //   selection.pop();
-      //   selection.shift();
-      // }
+      if (this.options.wrap) {
+        selection.pop();
+        selection.shift();
+      }
 
       return selection;
     }
@@ -149,23 +147,17 @@ export default {
         selection.push(val);
       }
 
-      selection = selection.join(",");
-
-      // if (this.options.wrap && selection.length > 0) {
-      //   selection = `,${selection},`;
-      // }
-
-      if (this.type === "array") {
-        selection = selection.split(",");
+      if (this.options.wrap) {
+        selection = ["", ...selection, ""];
       }
 
       this.$emit("input", selection);
     },
 
     saveSort() {
-      const selection = this.selection;
+      const selection = _.clone(this.selection);
 
-      const staged = this.sortableList
+      let staged = this.sortableList
         // Get all the values of the sorted available checkboxes
         .map(s => {
           if (s.custom) return this.customValue;
@@ -173,6 +165,10 @@ export default {
         })
         // Only leave the ones that are selected
         .filter(s => selection.includes(s));
+
+      if (this.options.wrap) {
+        staged = ["", ...staged, ""];
+      }
 
       return this.$emit("input", staged);
     },
@@ -198,6 +194,10 @@ export default {
         selection = [...selection, newValue];
       }
 
+      if (this.options.wrap) {
+        selection = ["", ...selection, ""];
+      }
+
       this.$emit("input", selection);
     },
 
@@ -211,6 +211,10 @@ export default {
         selection = [...selection, customValue];
       } else {
         selection = selection.filter(val => val !== customValue);
+      }
+
+      if (this.options.wrap) {
+        selection = ["", ...selection, ""];
       }
 
       this.$emit("input", selection);
