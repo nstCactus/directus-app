@@ -10,23 +10,24 @@
     @end="saveSort"
   >
     <v-checkbox
-      v-for="(item, idx) in sortableList"
-      :id="_uid + idx + '-' + (item.val ? item.val : item)"
-      :key="idx"
+      v-for="item in sortableList"
+      :id="item.id + '-' + item.val"
+      :key="item.id"
       name="list-sorting"
       class="sortable-box"
       :class="{ sortable: options.draggable }"
-      :value="item.val ? item.val : item"
+      :value="item.val"
       :disabled="readonly"
-      :label="item.label ? item.label : item"
-      :checked="selection.includes(item.val ? item.val : item)"
-      @change="updateValue(item.val ? item.val : item, $event)"
-    ></v-checkbox>
+      :label="item.label"
+      :checked="selection.includes(item.val)"
+      @change="updateValue(item.val, $event)"
+    />
   </draggable>
 </template>
 
 <script>
 import mixin from "@directus/extension-toolkit/mixins/interface";
+import shortid from "shortid";
 
 export default {
   name: "InterfaceCheckboxes",
@@ -34,7 +35,9 @@ export default {
 
   data() {
     return {
-      sortableList: []
+      sortableList: [],
+      customValue: "",
+      customChecked: false
     };
   },
 
@@ -65,23 +68,37 @@ export default {
   },
 
   created() {
-    // Convert the selected items and the choices into an array sorted by the
-    // manual sort of the user.
-    const selected = this.selection.map(val => ({
-      val: val,
-      label: this.options.choices[val]
-    }));
-
     const options = Object.keys(this.options.choices).map(key => ({
       val: key,
       label: this.options.choices[key]
     }));
 
-    const optionsWithoutSelection = options.filter(
-      option => this.selection.includes(option.val) === false
-    );
+    let sortableOptions;
 
-    this.sortableList = [...selected, ...optionsWithoutSelection];
+    if (this.options.draggable) {
+      // Convert the selected items and the choices into an array sorted by the
+      // manual sort of the user.
+      const selected = this.selection.map(val => ({
+        val: val,
+        label: this.options.choices[val]
+      }));
+
+      const optionsWithoutSelection = options.filter(
+        option => this.selection.includes(option.val) === false
+      );
+
+      sortableOptions = [...selected, ...optionsWithoutSelection];
+    } else {
+      sortableOptions = options;
+    }
+
+    // Add a unique ID to each sortable option so we can use that to key the items in the template
+    sortableOptions = sortableOptions.map(item => ({
+      ...item,
+      id: shortid.generate()
+    }));
+
+    this.sortableList = sortableOptions;
   },
 
   methods: {
@@ -154,7 +171,7 @@ export default {
 .sortable {
   margin-left: 12px; // To make space to show the drag handle
 
-  :after {
+  &:after {
     position: absolute;
     font-family: "Material Icons", sans-serif;
     display: inline-block;
@@ -168,6 +185,7 @@ export default {
     left: -20px;
     color: var(--lighter-gray);
     cursor: grab;
+    top: 0;
   }
 }
 </style>
