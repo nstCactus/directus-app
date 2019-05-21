@@ -9,19 +9,33 @@
     :draggable="options.draggable ? '.sortable-box.sortable' : false"
     @end="saveSort"
   >
-    <v-checkbox
-      v-for="item in sortableList"
-      :id="item.id + '-' + item.val"
-      :key="item.id"
-      name="list-sorting"
-      class="sortable-box"
-      :class="{ sortable: options.draggable }"
-      :value="item.val"
-      :disabled="readonly"
-      :label="item.label"
-      :checked="selection.includes(item.val)"
-      @change="updateValue(item.val, $event)"
-    />
+    <template v-for="item in sortableList">
+      <div
+        v-if="item.custom"
+        :key="item.id"
+        class="sortable-box custom-value"
+        :class="{ sortable: options.draggable }"
+      >
+        <button @click="toggleCustom">
+          <v-icon :name="customChecked ? 'check_box' : 'check_box_outline_blank'" />
+        </button>
+        <input :value="customValue" @input="updateCustom" />
+      </div>
+
+      <v-checkbox
+        v-else
+        :id="item.id + '-' + item.val"
+        :key="item.id"
+        name="list-sorting"
+        class="sortable-box"
+        :class="{ sortable: options.draggable }"
+        :value="item.val"
+        :disabled="readonly"
+        :label="item.label"
+        :checked="selection.includes(item.val)"
+        @change="updateValue(item.val, $event)"
+      />
+    </template>
   </draggable>
 </template>
 
@@ -75,6 +89,19 @@ export default {
 
     let sortableOptions;
 
+    if (this.options.allow_other) {
+      // The user's customly added value is the one value in the selection that doesn't have a preconfigured
+      // label associated with it.
+      const customValue = this.selection.filter(
+        val => Object.keys(this.options.choices).includes(val) === false
+      )[0];
+
+      if (customValue) {
+        this.customValue = customValue;
+        this.customChecked = true;
+      }
+    }
+
     if (this.options.draggable) {
       // Convert the selected items and the choices into an array sorted by the
       // manual sort of the user.
@@ -95,7 +122,8 @@ export default {
     // Add a unique ID to each sortable option so we can use that to key the items in the template
     sortableOptions = sortableOptions.map(item => ({
       ...item,
-      id: shortid.generate()
+      id: shortid.generate(),
+      custom: this.customValue === item.val
     }));
 
     this.sortableList = sortableOptions;
@@ -133,6 +161,45 @@ export default {
         .filter(s => selection.includes(s));
 
       return this.$emit("input", staged);
+    },
+
+    updateCustom(event) {
+      const currentValue = _.clone(this.customValue);
+      const newValue = event.target.value;
+
+      if (newValue.length === 0) {
+        this.customValue = null;
+        this.customChecked = false;
+      } else {
+        this.customValue = newValue;
+        this.customChecked = true;
+      }
+
+      let selection = _.clone(this.selection);
+
+      if (selection.includes(currentValue)) {
+        const index = selection.indexOf(currentValue);
+        selection[index] = newValue;
+      } else {
+        selection = [...selection, newValue];
+      }
+
+      this.$emit("input", selection);
+    },
+
+    toggleCustom() {
+      this.customChecked = !this.customChecked;
+
+      let selection = _.clone(this.selection);
+      const customValue = _.clone(this.customValue);
+
+      if (this.customChecked) {
+        selection = [...selection, customValue];
+      } else {
+        selection = selection.filter(val => val !== customValue);
+      }
+
+      this.$emit("input", selection);
     }
   }
 };
