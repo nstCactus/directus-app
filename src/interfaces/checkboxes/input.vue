@@ -126,6 +126,13 @@ export default {
       custom: this.customValue === item.val
     }));
 
+    if (this.options.allow_other) {
+      sortableOptions.push({
+        id: shortid.generate(),
+        custom: true
+      });
+    }
+
     this.sortableList = sortableOptions;
   },
 
@@ -193,7 +200,7 @@ export default {
       let selection = _.clone(this.selection);
       const customValue = _.clone(this.customValue);
 
-      if (this.customChecked) {
+      if (this.customChecked && customValue.length > 0) {
         selection = [...selection, customValue];
       } else {
         selection = selection.filter(val => val !== customValue);
