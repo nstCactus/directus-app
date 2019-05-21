@@ -1,21 +1,21 @@
 <template>
   <draggable
+    v-model="sortableList"
     element="div"
     class="interface-checkboxes"
     :class="{ draggable: options.draggable, single: options.single }"
-    v-model="sortableList"
     animation="200"
     ghost-class="ghost"
-    @end="saveSort()"
     :draggable="options.draggable ? '.sortable-box.sortable' : false"
+    @end="saveSort()"
   >
     <v-checkbox
-      name="list-sorting"
       v-for="(item, idx) in sortableList"
+      :id="_uid + idx + '-' + (item.val ? item.val : item)"
       :key="idx"
+      name="list-sorting"
       class="sortable-box"
       :class="{ sortable: options.draggable }"
-      :id="_uid + idx + '-' + (item.val ? item.val : item)"
       :value="item.val ? item.val : item"
       :disabled="readonly"
       :label="item.label ? item.label : item"
@@ -29,8 +29,14 @@
 import mixin from "@directus/extension-toolkit/mixins/interface";
 
 export default {
-  name: "interface-checkboxes",
+  name: "InterfaceCheckboxes",
   mixins: [mixin],
+
+  data() {
+    return {
+      sortableList: []
+    };
+  },
 
   computed: {
     selection() {
@@ -85,12 +91,6 @@ export default {
 
   created() {
     this.sortableList = this.trimValues(this.choosable, "val");
-  },
-
-  data() {
-    return {
-      sortableList: []
-    };
   },
 
   methods: {
