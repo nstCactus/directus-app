@@ -4,7 +4,9 @@
     class="interface-checkboxes"
     :class="{ draggable: sortable, single: options.single }"
     v-model="sortableList"
-    v-bind="dragOptions"
+    animation="200"
+    :disabled="!this.editable"
+    ghost-class="ghost"
     @end="saveSort()"
     :draggable="!sortable ? false : '.sortable-box.sortable'"
   >
@@ -32,14 +34,6 @@ export default {
   mixins: [mixin],
 
   computed: {
-    dragOptions() {
-      return {
-        animation: 200,
-        disabled: !this.editable,
-        ghostClass: "ghost"
-      };
-    },
-
     sortable() {
       return this.options.draggable;
     },
