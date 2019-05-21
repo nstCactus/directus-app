@@ -5,7 +5,6 @@
     :class="{ draggable: options.draggable, single: options.single }"
     v-model="sortableList"
     animation="200"
-    :disabled="!this.editable"
     ghost-class="ghost"
     @end="saveSort()"
     :draggable="options.draggable ? '.sortable-box.sortable' : false"
@@ -90,8 +89,7 @@ export default {
 
   data() {
     return {
-      sortableList: [],
-      editable: true
+      sortableList: []
     };
   },
 
