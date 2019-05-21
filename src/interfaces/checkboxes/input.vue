@@ -7,7 +7,7 @@
     animation="200"
     ghost-class="ghost"
     :draggable="options.draggable ? '.sortable-box.sortable' : false"
-    @end="saveSort()"
+    @end="saveSort"
   >
     <v-checkbox
       v-for="(item, idx) in sortableList"
@@ -61,40 +61,27 @@ export default {
       }
 
       return selection;
-    },
-    choosable() {
-      let options = this.options.choices ? this.options.choices : {};
-      let selected = this.selection ? this.selection : [];
-      if (typeof options === "object") {
-        options = Object.keys(options).map(k => ({
-          val: k,
-          label: options[k]
-        }));
-      }
-      if (selected.length > 0) {
-        let app = this;
-        selected = _.map(selected, k => {
-          return {
-            val: k,
-            label: app.findLabel(options, k)
-          };
-        });
-      }
-
-      let combined = [];
-
-      if (selected.length > 0 && (selected[0].val === null || selected[0].val === "")) {
-        combined = [...options];
-      } else {
-        combined = [...selected, ...options];
-      }
-
-      return combined;
     }
   },
 
   created() {
-    this.sortableList = this.trimValues(this.choosable, "val");
+    // Convert the selected items and the choices into an array sorted by the
+    // manual sort of the user.
+    const selected = this.selection.map(val => ({
+      val: val,
+      label: this.options.choices[val]
+    }));
+
+    const options = Object.keys(this.options.choices).map(key => ({
+      val: key,
+      label: this.options.choices[key]
+    }));
+
+    const optionsWithoutSelection = options.filter(
+      option => this.selection.includes(option.val) === false
+    );
+
+    this.sortableList = [...selected, ...optionsWithoutSelection];
   },
 
   methods: {
@@ -120,34 +107,15 @@ export default {
     },
 
     saveSort() {
-      let selection = this.selection;
-      let staged = _.map(this.sortableList, function(k) {
-        return k.val ? k.val : k;
-      });
-      staged = staged.filter(val => selection.includes(val));
+      const selection = this.selection;
+
+      const staged = this.sortableList
+        // Get all the values of the sorted available checkboxes
+        .map(s => s.val)
+        // Only leave the ones that are selected
+        .filter(s => selection.includes(s));
+
       return this.$emit("input", staged);
-    },
-
-    trimValues(arr, comp) {
-      return arr
-        .map(e => e[comp])
-        .map((e, i, final) => final.indexOf(e) === i && i) // store the keys of the unique objects
-        .filter(e => arr[e]) // eliminate the dead keys & store unique objects
-        .map(e => arr[e]);
-    },
-
-    findLabel(choice, k) {
-      if (choice.find(x => x.val === k)) {
-        // find labels in in interface options
-        if (choice.find(x => x.val === k).label) {
-          return choice.find(x => x.val === k).label;
-        } else {
-          return choice.find(x => x.val === k);
-        }
-      } else if (k !== null) {
-        // return key if no label was found
-        return k;
-      }
     }
   }
 };
