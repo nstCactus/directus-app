@@ -2,20 +2,20 @@
   <draggable
     element="div"
     class="interface-checkboxes"
-    :class="{ draggable: sortable, single: options.single }"
+    :class="{ draggable: options.draggable, single: options.single }"
     v-model="sortableList"
     animation="200"
     :disabled="!this.editable"
     ghost-class="ghost"
     @end="saveSort()"
-    :draggable="!sortable ? false : '.sortable-box.sortable'"
+    :draggable="options.draggable ? '.sortable-box.sortable' : false"
   >
     <v-checkbox
       name="list-sorting"
       v-for="(item, idx) in sortableList"
       :key="idx"
       class="sortable-box"
-      :class="{ sortable: sortable }"
+      :class="{ sortable: options.draggable }"
       :id="_uid + idx + '-' + (item.val ? item.val : item)"
       :value="item.val ? item.val : item"
       :disabled="readonly"
@@ -34,9 +34,6 @@ export default {
   mixins: [mixin],
 
   computed: {
-    sortable() {
-      return this.options.draggable;
-    },
     selection() {
       if (this.value == null) return [];
       let selection;
