@@ -72,10 +72,10 @@ export default {
 
       // If the wrapping option is activated, the first and last item will be an
       // empty string ( ",rijk," will split to ["", "rijk", ""]. This will remove those empty strings
-      if (this.options.wrap && selection.length > 2) {
-        selection.pop();
-        selection.shift();
-      }
+      // if (this.options.wrap && selection.length > 2) {
+      //   selection.pop();
+      //   selection.shift();
+      // }
 
       return selection;
     }
@@ -105,10 +105,13 @@ export default {
     if (this.options.draggable) {
       // Convert the selected items and the choices into an array sorted by the
       // manual sort of the user.
-      const selected = this.selection.map(val => ({
-        val: val,
-        label: this.options.choices[val]
-      }));
+      const selected = this.selection
+        // Filter out the custom option so we don't add it double down below
+        .filter(val => val !== this.customValue)
+        .map(val => ({
+          val: val,
+          label: this.options.choices[val]
+        }));
 
       const optionsWithoutSelection = options.filter(
         option => this.selection.includes(option.val) === false
@@ -138,7 +141,8 @@ export default {
 
   methods: {
     updateValue(val) {
-      let selection = [...this.selection];
+      let selection = _.clone(this.selection);
+
       if (selection.includes(val)) {
         selection.splice(selection.indexOf(val), 1);
       } else {
@@ -147,9 +151,9 @@ export default {
 
       selection = selection.join(",");
 
-      if (this.options.wrap && selection.length > 0) {
-        selection = `,${selection},`;
-      }
+      // if (this.options.wrap && selection.length > 0) {
+      //   selection = `,${selection},`;
+      // }
 
       if (this.type === "array") {
         selection = selection.split(",");
@@ -163,7 +167,10 @@ export default {
 
       const staged = this.sortableList
         // Get all the values of the sorted available checkboxes
-        .map(s => s.val)
+        .map(s => {
+          if (s.custom) return this.customValue;
+          return s.val;
+        })
         // Only leave the ones that are selected
         .filter(s => selection.includes(s));
 
