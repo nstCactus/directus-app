@@ -39,23 +39,27 @@ export default {
   },
 
   computed: {
+    // The currently saved selection. It's this.value converted to an array, and
+    // adjusted for the wrapped `,` characters if applicable
     selection() {
-      if (this.value == null) return [];
+      if (!this.value) return [];
+
       let selection;
+
       // Convert the value to an array
-      if (typeof this.value === "string" && this.value) {
-        if (this.value.includes(",")) {
-          selection = this.value.split(",");
-        } else {
-          selection = [this.value];
-        }
+      if (typeof this.value === "string") {
+        selection = this.value.split(",");
       } else {
         selection = this.value;
       }
+
+      // If the wrapping option is activated, the first and last item will be an
+      // empty string ( ",rijk," will split to ["", "rijk", ""]. This will remove those empty strings
       if (this.options.wrap && selection.length > 2) {
         selection.pop();
         selection.shift();
       }
+
       return selection;
     },
     choosable() {
